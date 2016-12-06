@@ -6,4 +6,6 @@ For it to work after cloning, you need to download and extract the VGG16 model c
 
 http://download.tensorflow.org/models/vgg_16_2016_08_28.tar.gz
 
-You should be able to run it as a normal Shiny application, e g by shiny::runApp() or the Run App button in RStudio, if you are standing in the right directory.
+...into the same directory as the other files.
+
+You should be able to run this as a normal Shiny application, e g by shiny::runApp() or the Run App button in RStudio, if you are standing in the right directory.
