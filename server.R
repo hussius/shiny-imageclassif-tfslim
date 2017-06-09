@@ -19,7 +19,9 @@ plot_jpeg = function(path, add=FALSE)
   rasterImage(jpg,1,1,res[1],res[2])
 }
 
-shinyServer(function(input, output) {
+globalFunction <- function(imgs) {
+  
+  print("loading... define_network_shape function")
   
   define_network_shape <- function(){
     # Define the shape of the network.
@@ -54,18 +56,24 @@ shinyServer(function(input, output) {
       tf$squeeze(shape(1, 2), name='vgg_16/fc8/squeezed')
   }
   
-  # Import slim library and initialize
+  print("Import slim library and initialize")
   slim = tf$contrib$slim
   tf$reset_default_graph()
-  
   images = tf$placeholder(tf$float32, shape(NULL,NULL,NULL,3))
   imgs_scaled = tf$image$resize_images(images, shape(224,224))
   
   fc8 <- define_network_shape()
-  # Start session and restore the model from a file
+  print("Start session and restore the model from a file")
   restorer = tf$train$Saver()
   sess = tf$Session()
+  #  sess <- tf$InteractiveSession()
   restorer$restore(sess, 'vgg_16.ckpt')
+  
+  
+  return(sess$run(fc8, dict(images=imgs)))
+}  
+
+shinyServer(function(input, output) {
   
   # The function for plotting the image with classifications
   output$classifImage <- renderPlot({
@@ -75,7 +83,7 @@ shinyServer(function(input, output) {
     img1 <- readJPEG(inData$datapath)
     d <- dim(img1)
     imgs <- array(255*img1, dim=c(1, d[1], d[2], d[3]))
-    fc8_vals <- sess$run(fc8, dict(images=imgs))
+    fc8_vals <- globalFunction(imgs)
     probs <- exp(fc8_vals)/sum(exp(fc8_vals))
     idx <- head(order(probs,decreasing=T), n=5)
     names = read.delim("imagenet_classes.txt", header=F)
